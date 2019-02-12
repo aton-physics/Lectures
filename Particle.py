@@ -2,19 +2,26 @@
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt # for plotting          
 import numpy as np
+from copy import copy
 
-class Particle (object):
+class Particle(object):
 
     """Class that describes particle"""
     m = 1.0
 
-    def __init__(self, x0=1.0, v0=0.0,  tf = 10.0, dt = 0.01):
+    def __init__(self, x0=1.0, v0=0.0,  tf = 10.0, dt = 0.001):
         self.x = x0
         self.v = v0
         self.t = 0.0
         self.tf = tf
         self.dt = dt
+
+        self.tlabel = 'time (s)'
+        self.xlabel = 'x (m)'
+        self.vlabel = 'v (m/s)'
+
         npoints = int(tf/dt) # always starting at t = 0.0
+        self.npoints = npoints
         self.tarray = np.linspace(0.0, tf,npoints, endpoint = True) # include final timepoint
         self.xv0 = np.array([self.x, self.v]) # NumPy array with initial position and velocity
 
@@ -33,10 +40,10 @@ class Particle (object):
         self.x += self.v * self.dt
         self.v += a * self.dt
         self.t += self.dt
-    
+
     def RK4_step(self):
         """
-        Take a single time step using RK4 midpoint methon
+        Take a single time step using RK4 midpoint method
         """
         a1 = self.F(self.x, self.v, self.t) / self.m
         k1 = np.array([self.v, a1])*self.dt
@@ -148,7 +155,7 @@ class Particle (object):
         ax1.legend()
         ax2.legend()
 
-class FallingParticle (Particle):
+class FallingParticle(Particle):
 
     """Subclass of Particle Class that describes a falling particle"""
     g = 9.8

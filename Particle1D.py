@@ -129,7 +129,7 @@ class Particle (object):
             if pt == 'trajectory':
                 ax1.plot(self.tarray, self.xv[:, 0], "k", label = 'odeint')
             if pt == 'phase':
-                ax2.plot(self.xv[:, 0], self.xv[:, 1], "k",'.', label = 'odeint')
+                ax1.plot(self.xv[:, 0], self.xv[:, 1], "k",'.', label = 'odeint')
         
         if hasattr(self,'x_euler'):
 
@@ -150,8 +150,8 @@ class Particle (object):
             ax1.set_ylabel(self.xlabel)
         
         if pt == 'phase':
-            ax2.set_xlabel(self.xlabel)
-            ax2.set_ylabel(self.vlabel)
+            ax1.set_xlabel(self.xlabel)
+            ax1.set_ylabel(self.vlabel)
 
 
 class Pendulum(Particle):
