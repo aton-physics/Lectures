@@ -57,23 +57,31 @@ class Particle3D(object):
 
         print("A new particle has been init'd")
         
+    def find_location(self, x):
+        a = np.where(np.logical_and(self.x>=-0.31, self.x<=-0.29))
+        
+        print("My location is at the following coordinates: (" + str(self.x[a[0]]) + "," + str(self.y[a[0]]) + ").")
+        
     def set_masstocharge(self, masstocharge):
         self.masstocharge = masstocharge
     
     def set_b(self, b):
         self.b = b
         
-    def plot2d(self):
+    def plot2d(self, optional = 0, xlow =0, xhigh=0, ylow=0, yhigh=0):
         fig1=plt.figure()
         ax1 = fig1.add_subplot(111)
         axes = plt.gca()
-        axes.set_xlim([0,50])
-        axes.set_ylim([0,50])
+        axes.set_xlim([-.30,.5])
+        axes.set_ylim([0,.5])
+        if (optional == 1):
+            axes.set_xlim([xlow, xhigh])
+            axes.set_ylim([ylow, yhigh])
         plt.ticklabel_format(useOffset=False)
         ax1.plot(self.x, self.y)
         ax1.set_title(self.tag)
-        ax1.set_xlabel('x (cm)')
-        ax1.set_ylabel('y (cm)')
+        ax1.set_xlabel('x (m)')
+        ax1.set_ylabel('y (m)')
 
     def drag_coefficient(self, v, r=1):
         a = 0.25
@@ -139,7 +147,7 @@ class Particle3D(object):
         return force'''
     
     def force(self, x, y, z, vx, vy, vz):
-        force = [0,0, 0]
+        force = [0,0,0]
         chargetomass = 1 / self.masstocharge
         force[0] += vy * self.b
         force[1] -= vx * self.b
