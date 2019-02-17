@@ -23,6 +23,9 @@ class Particle3D(object):
         self.dt = dt
         self.counter = 0
         
+        self.masstocharge = 1
+        self.b = 1
+        
         self.omegax = omegax
         self.omegay = omegay
         self.omegaz = omegaz
@@ -53,6 +56,24 @@ class Particle3D(object):
         self.rvz = []
 
         print("A new particle has been init'd")
+        
+    def set_masstocharge(self, masstocharge):
+        self.masstocharge = masstocharge
+    
+    def set_b(self, b):
+        self.b = b
+        
+    def plot2d(self):
+        fig1=plt.figure()
+        ax1 = fig1.add_subplot(111)
+        axes = plt.gca()
+        axes.set_xlim([0,50])
+        axes.set_ylim([0,50])
+        plt.ticklabel_format(useOffset=False)
+        ax1.plot(self.x, self.y)
+        ax1.set_title(self.tag)
+        ax1.set_xlabel('x (cm)')
+        ax1.set_ylabel('y (cm)')
 
     def drag_coefficient(self, v, r=1):
         a = 0.25
@@ -88,7 +109,7 @@ class Particle3D(object):
         lift_force = [0.5*lift_constant*r/spin*omega_cross_v[0], 0.5*lift_constant*r/spin*omega_cross_v[1], 0.5*lift_constant*r/spin*omega_cross_v[2]]
         return lift_force
     
-    def force(self, x, y, z, v_x, v_y, v_z, optional = 0, rk_step = 0):
+    '''def force(self, x, y, z, v_x, v_y, v_z, optional = 0, rk_step = 0):
         dt = self.dt
         rho = 1.225 #units = kg / m^3
         vel_sq = v_x**2 + v_y**2 + v_z**2
@@ -115,13 +136,23 @@ class Particle3D(object):
             self.drag_work.append(self.drag_accum)
             self.current_energy.append(0.5*self.m*vel_sq - self.m*9.81*z)
             self.hamiltonian.append(0.5*self.m*vel_sq - self.m*9.81*z - self.drag_accum)
+        return force'''
+    
+    def force(self, x, y, z, vx, vy, vz):
+        force = [0,0, 0]
+        chargetomass = 1 / self.masstocharge
+        force[0] += vy * self.b
+        force[1] -= vx * self.b
+        for ii in range(2):
+            force[ii] *= chargetomass
+        
         return force
     
     def RK4_step(self):
         """
         Take a single time step using RK4 midpoint method
         """
-        first = self.force(self.x, self.y, self.z, self.v_x, self.v_y, self.v_z, 0, 1)
+        first = self.force(self.x, self.y, self.z, self.v_x, self.v_y, self.v_z)
         
         a1 = first[0]/ self.m
         b1 = first[1]/ self.m
@@ -130,7 +161,7 @@ class Particle3D(object):
         l1 = np.array([self.v_y, b1])*self.dt
         m1 = np.array([self.v_z, c1])*self.dt
         
-        second = self.force(self.x + k1[0]/2, self.y + l1[0]/2, self.z + m1[0]/2, self.v_x + k1[1]/2, self.v_y + l1[1]/2, self.v_z + m1[1]/2, 0, 2)
+        second = self.force(self.x + k1[0]/2, self.y + l1[0]/2, self.z + m1[0]/2, self.v_x + k1[1]/2, self.v_y + l1[1]/2, self.v_z + m1[1]/2)
         
         a2 = second[0] / self.m
         b2 = second[1] / self.m
@@ -139,7 +170,7 @@ class Particle3D(object):
         l2 = np.array([self.v_y + l1[1]/2, b2])*self.dt
         m2 = np.array([self.v_z + m1[1]/2, c2])*self.dt
         
-        third = self.force(self.x + k2[0]/2, self.y + l2[0]/2, self.z + m2[0]/2, self.v_x + k2[1]/2, self.v_y + l2[1]/2, self.v_z + m2[1]/2, 0, 3)
+        third = self.force(self.x + k2[0]/2, self.y + l2[0]/2, self.z + m2[0]/2, self.v_x + k2[1]/2, self.v_y + l2[1]/2, self.v_z + m2[1]/2)
         
         a3 = third[0] / self.m
         b3 = third[1] / self.m
@@ -148,7 +179,7 @@ class Particle3D(object):
         l3 = np.array([self.v_y + l2[1]/2, b3])*self.dt
         m3 = np.array([self.v_z + m2[1]/2, c3])*self.dt
         
-        fourth = self.force(self.x + k3[0], self.y + l3[0], self.z + m3[0], self.v_x + k3[1], self.v_y + l3[1], self.v_z + m3[1], 0, 4)
+        fourth = self.force(self.x + k3[0], self.y + l3[0], self.z + m3[0], self.v_x + k3[1], self.v_y + l3[1], self.v_z + m3[1])
         
         a4 = fourth[0] / self.m
         b4 = fourth[1] / self.m
@@ -180,7 +211,7 @@ class Particle3D(object):
         v_zRK4 = []
         
         while(self.t < self.tf - self.dt/2):
-            first = self.force(self.x, self.y, self.z, self.v_x, self.v_y, self.v_z, 1)
+            first = self.force(self.x, self.y, self.z, self.v_x, self.v_y, self.v_z)
             x_RK4.append(self.x)
             y_RK4.append(self.y)
             z_RK4.append(self.z)
@@ -520,12 +551,3 @@ class FallingParticle(Particle):
     def F(self, x, v, t):
             return  -self.g*self.m
 
-class ChargedParticle(Particle3D):
-    
-    def __init__(self, x0=0.0, v_x0=0.0,  y0=0.0, v_y0 = 0.0, z0 = 100.0, v_z0 = 0.0, tf = 10.0, dt = 0.01, tag = "tag", omegax = 0.0, omegay = 0.0, omegaz = 0.0, masstocharge = 1):
-        self.m = m
-        self.q = 1 / masstocharge
-        super().__init__()
-    def mass_to_charge(self, m2q):
-        self.q = 1 / m2q
-    def force()
