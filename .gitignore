@@ -1,4 +1,7 @@
+__pycache__/
+*.so
+*.py[cod]
 *.pptx
 .DS_Store
 .ipynb_checkpoints/
-__pychache__/
+
